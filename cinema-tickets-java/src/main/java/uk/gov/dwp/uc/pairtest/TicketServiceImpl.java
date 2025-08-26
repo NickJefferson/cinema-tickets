@@ -38,7 +38,10 @@ public class TicketServiceImpl implements TicketService {
                     totalSeats++;
                     break;
                 case CHILD:
+                    totalCost += (request.getNoOfTickets() * 15);
+                    totalSeats++;
                 case INFANT:
+                    // Infants go free and don't take up a seat
                     break;
             }
         }
