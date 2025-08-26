@@ -47,4 +47,25 @@ public class TicketServiceTest {
         verify(seatReservationService).reserveSeat(eq(validAccountId), eq(1));
     }
 
+    @Test
+    void shouldPurchaseTickets_OneTicketOfEachType() throws InvalidPurchaseException {
+
+        TicketTypeRequest adultRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.ADULT, 1);
+        TicketTypeRequest childRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.CHILD, 1);
+        TicketTypeRequest infantRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.INFANT, 1);
+
+        ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest);
+
+        // Verify payment service was called with correct total
+        // 1 Adult (£25) + 1 Child (£15) + 1 Infant (£0) = £40
+        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(40));
+
+        // Verify seat reservation service was called with correct number of seats
+        // 1 Adult (1 seat) + 1 Child (1 seat) + 1 Infant (0 seats) = 2 seats
+        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(2));
+    }
+
 }
