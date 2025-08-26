@@ -68,4 +68,30 @@ public class TicketServiceTest {
         verify(seatReservationService).reserveSeat(eq(validAccountId), eq(2));
     }
 
+    @Test
+    void shouldPurchaseTickets_MultipleTicketsOfEachType() throws InvalidPurchaseException {
+
+        TicketTypeRequest adultRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.ADULT, 2);
+        TicketTypeRequest childRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.CHILD, 3);
+        TicketTypeRequest infantRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.INFANT, 2);
+
+        ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest);
+
+        // Make sure ticket service correctly calculates cost and number of seats when
+        // multiple tickets of each type are requested ...
+        //
+        // 2 x Adult = 2 x £25 = £50
+        // 3 x Child = 3 x £15 = £45
+        // 2 x Infant = 2 x £0 = £0
+        // Total cost: £95
+        // Total seats: 5
+
+        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(95));
+        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(5));
+    }
+
+
 }
