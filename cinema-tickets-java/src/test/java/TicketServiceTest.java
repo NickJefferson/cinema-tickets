@@ -13,6 +13,7 @@ import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TicketServiceTest {
 
@@ -69,6 +70,9 @@ public class TicketServiceTest {
     }
 
     @Test
+    // This tests a couple of stated business rules:
+    // "Multiple tickets can be purchased at any given time."
+    // "Infants do not pay for a ticket and are not allocated a seat."
     void shouldPurchaseTickets_MultipleTicketsOfEachType() throws InvalidPurchaseException {
 
         TicketTypeRequest adultRequest = new TicketTypeRequest(
@@ -93,5 +97,43 @@ public class TicketServiceTest {
         verify(seatReservationService).reserveSeat(eq(validAccountId), eq(5));
     }
 
+    // Tests the business rule:
+    // "Only a maximum of 25 tickets that can be purchased at a time."
+    @Test
+    void shouldThrowException_MoreThanMaxTickets() {
+
+        // 26 tickets total spread across different types
+        TicketTypeRequest adultRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.ADULT, 10);
+        TicketTypeRequest childRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.CHILD, 10);
+        TicketTypeRequest infantRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.INFANT, 6);
+
+        // Assert that the expected exception is thrown
+        Assertions.assertThrows(InvalidPurchaseException.class, () ->
+                ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest));
+
+        // ... and verify that the 3rd party interfaces are not called
+        verifyNoInteractions(ticketPaymentService, seatReservationService);
+    }
+
+    // Tests the business rule:
+    // "Child and Infant tickets cannot be purchased without purchasing an Adult ticket."
+    @Test
+    void shouldThrowException_NoAdultTicket() {
+        // Child and infant ticket requests ONLY (no adult)
+        TicketTypeRequest childRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.CHILD, 1);
+        TicketTypeRequest infantRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.INFANT, 1);
+
+        // Assert that the expected exception is thrown
+        Assertions.assertThrows(InvalidPurchaseException.class, () ->
+                ticketService.purchaseTickets(validAccountId, childRequest, infantRequest));
+
+        // ... and verify that the 3rd party interfaces are not called
+        verifyNoInteractions(ticketPaymentService, seatReservationService);
+    }
 
 }
