@@ -13,6 +13,8 @@ public class TicketServiceImpl implements TicketService {
      * Should only have private methods other than the one below.
      */
 
+    private static final int MAX_TICKETS = 25;
+
     TicketPaymentService ticketPaymentService = new TicketPaymentServiceImpl();
     SeatReservationService seatReservationService = new SeatReservationServiceImpl();
 
@@ -21,6 +23,7 @@ public class TicketServiceImpl implements TicketService {
 
         int totalCost = 0;
         int totalSeats = 0;
+        int totalTickets = 0;
 
         for (TicketTypeRequest request : ticketTypeRequests) {
 
@@ -44,6 +47,12 @@ public class TicketServiceImpl implements TicketService {
                     // Infants go free and don't take up a seat
                     break;
             }
+
+            totalTickets += request.getNoOfTickets();
+        }
+
+        if (totalTickets > MAX_TICKETS) {
+            throw new InvalidPurchaseException();
         }
 
         ticketPaymentService.makePayment(accountId, totalCost);
