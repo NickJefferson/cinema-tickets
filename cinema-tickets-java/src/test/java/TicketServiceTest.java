@@ -185,7 +185,7 @@ public class TicketServiceTest {
     @Test
     void shouldThrowException_EmptyTicketRequests() {
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(null)
+                ticketService.purchaseTickets(validAccountId, null)
         );
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
