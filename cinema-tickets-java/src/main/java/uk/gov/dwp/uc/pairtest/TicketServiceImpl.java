@@ -25,6 +25,10 @@ public class TicketServiceImpl implements TicketService {
         int totalSeats = 0;
         int totalTickets = 0;
 
+        int nAdults = 0;
+        int nChildren = 0;
+        int nInfants = 0;
+
         for (TicketTypeRequest request : ticketTypeRequests) {
 
             /*
@@ -38,20 +42,34 @@ public class TicketServiceImpl implements TicketService {
             switch (request.getTicketType()) {
                 case ADULT:
                     totalCost += (request.getNoOfTickets() * 25);
-                    totalSeats += request.getNoOfTickets();
+                    nAdults += request.getNoOfTickets();
                     break;
                 case CHILD:
                     totalCost += (request.getNoOfTickets() * 15);
-                    totalSeats += request.getNoOfTickets();
+                    nChildren += request.getNoOfTickets();
                 case INFANT:
                     // Infants go free and don't take up a seat
+                    nInfants += request.getNoOfTickets();
                     break;
             }
 
-            totalTickets += request.getNoOfTickets();
         }
 
+        // All types need a ticket
+        totalTickets = nAdults + nChildren + nInfants;
+
+        // Infants don't take up a seat
+        totalSeats = nAdults + nChildren;
+
+        // Enforce business rules
+
+        // 1. "Only a maximum of 25 tickets that can be purchased at a time."
         if (totalTickets > MAX_TICKETS) {
+            throw new InvalidPurchaseException();
+        }
+
+        // 2. "Child and Infant tickets cannot be purchased without purchasing an Adult ticket."
+        if (nAdults == 0 && (nChildren + nInfants > 0)) {
             throw new InvalidPurchaseException();
         }
 
