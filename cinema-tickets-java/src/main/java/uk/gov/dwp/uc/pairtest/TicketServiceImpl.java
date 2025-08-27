@@ -5,8 +5,11 @@ import thirdparty.paymentgateway.TicketPaymentService;
 import thirdparty.paymentgateway.TicketPaymentServiceImpl;
 import thirdparty.seatbooking.SeatReservationService;
 import thirdparty.seatbooking.SeatReservationServiceImpl;
+import uk.gov.dwp.uc.pairtest.domain.TicketType;
 import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
 import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
+
+import java.util.Arrays;
 
 public class TicketServiceImpl implements TicketService {
     /**
@@ -25,35 +28,12 @@ public class TicketServiceImpl implements TicketService {
         int totalSeats = 0;
         int totalTickets = 0;
 
-        int nAdults = 0;
-        int nChildren = 0;
-        int nInfants = 0;
+        int nAdults = countTicketsByType(ticketTypeRequests, TicketType.ADULT);
+        int nChildren = countTicketsByType(ticketTypeRequests, TicketType.CHILD);
+        int nInfants = countTicketsByType(ticketTypeRequests, TicketType.INFANT);
 
         for (TicketTypeRequest request : ticketTypeRequests) {
-
-            /*
-            |   Ticket Type    |     Price   |
-            | ---------------- | ----------- |
-            |    INFANT        |    £0       |
-            |    CHILD         |    £15      |
-            |    ADULT         |    £25      |
-             */
-
-            switch (request.getTicketType()) {
-                case ADULT:
-                    totalCost += (request.getNoOfTickets() * 25);
-                    nAdults += request.getNoOfTickets();
-                    break;
-                case CHILD:
-                    totalCost += (request.getNoOfTickets() * 15);
-                    nChildren += request.getNoOfTickets();
-                    break;
-                case INFANT:
-                    // Infants go free and don't take up a seat
-                    nInfants += request.getNoOfTickets();
-                    break;
-            }
-
+            totalCost += (request.getNoOfTickets() * request.getTicketType().getPrice());
         }
 
         // All types need a ticket
@@ -62,8 +42,7 @@ public class TicketServiceImpl implements TicketService {
         // Infants don't take up a seat
         totalSeats = nAdults + nChildren;
 
-        // Enforce business rules
-
+        // Enforce business rules:
         // 1. "Only a maximum of 25 tickets that can be purchased at a time."
         if (totalTickets > MAX_TICKETS) {
             throw new InvalidPurchaseException();
@@ -84,6 +63,14 @@ public class TicketServiceImpl implements TicketService {
 
         ticketPaymentService.makePayment(accountId, totalCost);
         seatReservationService.reserveSeat(accountId, totalSeats);
+    }
+
+    // Helper method to count all tickets of a given type in the requests
+    private int countTicketsByType(TicketTypeRequest[] ticketTypeRequests, TicketType ticketType) {
+        return Arrays.stream(ticketTypeRequests)
+                .filter(request -> request.getTicketType().equals(ticketType))
+                .mapToInt(TicketTypeRequest::getNoOfTickets)
+                .sum();
     }
 
 }
