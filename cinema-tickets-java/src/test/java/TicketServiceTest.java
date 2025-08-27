@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TicketServiceTest {
 
-    private static final Long validAccountId = 42L;
+    private static final Long VALID_ACCOUNT_ID = 42L;
 
     @Mock
     private TicketPaymentService ticketPaymentService;
@@ -40,13 +40,13 @@ public class TicketServiceTest {
         TicketTypeRequest adultRequest = new TicketTypeRequest(
                 TicketType.ADULT, 1);
 
-        ticketService.purchaseTickets(validAccountId, adultRequest);
+        ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest);
 
         // Verify payment service was called with correct total
-        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(25));
+        verify(ticketPaymentService).makePayment(eq(VALID_ACCOUNT_ID), eq(25));
 
         // Verify seat reservation service was called with correct number of seats
-        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(1));
+        verify(seatReservationService).reserveSeat(eq(VALID_ACCOUNT_ID), eq(1));
     }
 
     @Test
@@ -59,15 +59,15 @@ public class TicketServiceTest {
         TicketTypeRequest infantRequest = new TicketTypeRequest(
                 TicketType.INFANT, 1);
 
-        ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest);
+        ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, childRequest, infantRequest);
 
         // Verify payment service was called with correct total
         // 1 Adult (£25) + 1 Child (£15) + 1 Infant (£0) = £40
-        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(40));
+        verify(ticketPaymentService).makePayment(eq(VALID_ACCOUNT_ID), eq(40));
 
         // Verify seat reservation service was called with correct number of seats
         // 1 Adult (1 seat) + 1 Child (1 seat) + 1 Infant (0 seats) = 2 seats
-        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(2));
+        verify(seatReservationService).reserveSeat(eq(VALID_ACCOUNT_ID), eq(2));
     }
 
     @Test
@@ -83,7 +83,7 @@ public class TicketServiceTest {
         TicketTypeRequest infantRequest = new TicketTypeRequest(
                 TicketType.INFANT, 2);
 
-        ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest);
+        ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, childRequest, infantRequest);
 
         // Make sure ticket service correctly calculates cost and number of seats when
         // multiple tickets of each type are requested ...
@@ -94,8 +94,8 @@ public class TicketServiceTest {
         // Total cost: £95
         // Total seats: 5
 
-        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(95));
-        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(5));
+        verify(ticketPaymentService).makePayment(eq(VALID_ACCOUNT_ID), eq(95));
+        verify(seatReservationService).reserveSeat(eq(VALID_ACCOUNT_ID), eq(5));
     }
 
     // Tests the business rule:
@@ -113,7 +113,7 @@ public class TicketServiceTest {
 
         // Assert that the expected exception is thrown
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, adultRequest, childRequest, infantRequest));
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, childRequest, infantRequest));
 
         // ... and verify that the 3rd party interfaces are not called
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -131,7 +131,7 @@ public class TicketServiceTest {
 
         // Assert that the expected exception is thrown
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, childRequest, infantRequest));
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, childRequest, infantRequest));
 
         // ... and verify that the 3rd party interfaces are not called
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -150,7 +150,7 @@ public class TicketServiceTest {
 
         // Assert that the expected exception is thrown
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, adultRequest, infantRequest));
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, infantRequest));
 
         // ... and verify that the 3rd party interfaces are not called
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -185,7 +185,7 @@ public class TicketServiceTest {
     @Test
     void shouldThrowException_EmptyTicketRequests() {
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, null)
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, null)
         );
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -197,7 +197,7 @@ public class TicketServiceTest {
         TicketTypeRequest childRequest = new TicketTypeRequest(TicketType.CHILD, 0);
 
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, adultRequest, childRequest)
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, childRequest)
         );
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -209,7 +209,7 @@ public class TicketServiceTest {
         TicketTypeRequest infantRequest = new TicketTypeRequest(TicketType.INFANT, -1);
 
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(validAccountId, adultRequest, infantRequest)
+                ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest, infantRequest)
         );
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
@@ -233,7 +233,7 @@ public class TicketServiceTest {
         TicketTypeRequest infantRequest2 = new TicketTypeRequest(
                 TicketType.INFANT, 1);
 
-        ticketService.purchaseTickets(validAccountId, adultRequest1, adultRequest2,
+        ticketService.purchaseTickets(VALID_ACCOUNT_ID, adultRequest1, adultRequest2,
                 childRequest1, childRequest2, infantRequest1, infantRequest2);
 
         // Make sure ticket service correctly calculates cost and number of seats  ...
@@ -248,7 +248,7 @@ public class TicketServiceTest {
         // Total cost: £220
         // Total seats: 12
 
-        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(220));
-        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(12));
+        verify(ticketPaymentService).makePayment(eq(VALID_ACCOUNT_ID), eq(220));
+        verify(seatReservationService).reserveSeat(eq(VALID_ACCOUNT_ID), eq(12));
     }
 }

@@ -1,6 +1,5 @@
 package uk.gov.dwp.uc.pairtest;
 
-import jdk.jshell.spi.ExecutionControl;
 import thirdparty.paymentgateway.TicketPaymentService;
 import thirdparty.paymentgateway.TicketPaymentServiceImpl;
 import thirdparty.seatbooking.SeatReservationService;
@@ -18,8 +17,8 @@ public class TicketServiceImpl implements TicketService {
 
     private static final int MAX_TICKETS = 25;
 
-    TicketPaymentService ticketPaymentService = new TicketPaymentServiceImpl();
-    SeatReservationService seatReservationService = new SeatReservationServiceImpl();
+    private TicketPaymentService ticketPaymentService = new TicketPaymentServiceImpl();
+    private SeatReservationService seatReservationService = new SeatReservationServiceImpl();
 
     @Override
     public void purchaseTickets(Long accountId, TicketTypeRequest... ticketTypeRequests) throws InvalidPurchaseException {
@@ -38,7 +37,7 @@ public class TicketServiceImpl implements TicketService {
         // All types need a ticket
         totalTickets = nAdults + nChildren + nInfants;
         if (totalTickets == 0) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("At least one ticket must be requested");
         }
 
         for (TicketTypeRequest request : ticketTypeRequests) {
@@ -51,12 +50,13 @@ public class TicketServiceImpl implements TicketService {
         // Enforce business rules:
         // 1. "Only a maximum of 25 tickets that can be purchased at a time."
         if (totalTickets > MAX_TICKETS) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("A maximum of " + MAX_TICKETS + " can be purchased at a time");
         }
 
         // 2. "Child and Infant tickets cannot be purchased without purchasing an Adult ticket."
         if (nAdults == 0 && (nChildren + nInfants > 0)) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException(
+                    "Child and Infant tickets cannot be purchased without purchasing an Adult ticket");
         }
 
         // 3.
@@ -64,7 +64,7 @@ public class TicketServiceImpl implements TicketService {
         // Note that this implies maximum of 1 infant per adult, as is common on airlines.
         // HOWEVER it is not explicitly stated, so IRL I would clarify this requirement.
         if (nInfants > nAdults) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("Number of infant tickets cannot be higher than number of adults");
         }
 
         ticketPaymentService.makePayment(accountId, totalCost);
@@ -73,19 +73,19 @@ public class TicketServiceImpl implements TicketService {
 
     private void validateRequests(TicketTypeRequest[] ticketTypeRequests) throws InvalidPurchaseException {
         if (ticketTypeRequests == null || ticketTypeRequests.length == 0) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("There must be at least one ticket request");
         }
 
         // Check for negative ticket requests
         if (Arrays.stream(ticketTypeRequests).anyMatch(
                 request -> request.getNoOfTickets() < 0)) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("Number of tickets cannot be negative");
         }
     }
 
     private void validateAccount(Long accountId) throws InvalidPurchaseException {
         if (accountId == null || accountId <= 0) {
-            throw new InvalidPurchaseException();
+            throw new InvalidPurchaseException("Account ID is invalid");
         }
     }
 
