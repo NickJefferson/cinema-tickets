@@ -47,6 +47,7 @@ public class TicketServiceImpl implements TicketService {
                 case CHILD:
                     totalCost += (request.getNoOfTickets() * 15);
                     nChildren += request.getNoOfTickets();
+                    break;
                 case INFANT:
                     // Infants go free and don't take up a seat
                     nInfants += request.getNoOfTickets();
@@ -70,6 +71,14 @@ public class TicketServiceImpl implements TicketService {
 
         // 2. "Child and Infant tickets cannot be purchased without purchasing an Adult ticket."
         if (nAdults == 0 && (nChildren + nInfants > 0)) {
+            throw new InvalidPurchaseException();
+        }
+
+        // 3.
+        // "Infants do not pay for a ticket and are not allocated a seat. They will be sitting on an Adult's lap."
+        // Note that this implies maximum of 1 infant per adult, as is common on airlines.
+        // HOWEVER it is not explicitly stated, so IRL I would clarify this requirement.
+        if (nInfants > nAdults) {
             throw new InvalidPurchaseException();
         }
 
