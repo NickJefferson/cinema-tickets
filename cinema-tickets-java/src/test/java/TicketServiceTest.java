@@ -214,4 +214,41 @@ public class TicketServiceTest {
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
     }
+
+    @Test
+    // This tests an edge case that should result in a successful purchase:
+    //  duplicate ticket requests of the same type.
+    void shouldPurchaseTickets_DuplicateTicketTypes() {
+
+        TicketTypeRequest adultRequest1 = new TicketTypeRequest(
+                TicketType.ADULT, 2);
+        TicketTypeRequest adultRequest2 = new TicketTypeRequest(
+                TicketType.ADULT, 2);
+        TicketTypeRequest childRequest1 = new TicketTypeRequest(
+                TicketType.CHILD, 3);
+        TicketTypeRequest childRequest2 = new TicketTypeRequest(
+                TicketType.CHILD, 5);
+        TicketTypeRequest infantRequest1 = new TicketTypeRequest(
+                TicketType.INFANT, 2);
+        TicketTypeRequest infantRequest2 = new TicketTypeRequest(
+                TicketType.INFANT, 1);
+
+        ticketService.purchaseTickets(validAccountId, adultRequest1, adultRequest2,
+                childRequest1, childRequest2, infantRequest1, infantRequest2);
+
+        // Make sure ticket service correctly calculates cost and number of seats  ...
+        //
+        // 2 x Adult = 2 x £25 = £50
+        // 2 x Adult = 2 x £25 = £50
+        // 3 x Child = 3 x £15 = £45
+        // 5 x Child = 5 x £15 = £75
+        // 2 x Infant = 2 x £0 = £0
+        // 1 x Infant = 1 x £0 = £0
+        //
+        // Total cost: £220
+        // Total seats: 12
+
+        verify(ticketPaymentService).makePayment(eq(validAccountId), eq(220));
+        verify(seatReservationService).reserveSeat(eq(validAccountId), eq(12));
+    }
 }
