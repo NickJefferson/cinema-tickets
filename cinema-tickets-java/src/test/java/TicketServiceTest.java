@@ -136,4 +136,22 @@ public class TicketServiceTest {
         verifyNoInteractions(ticketPaymentService, seatReservationService);
     }
 
+    // Tests the business rule:
+    // "Infants do not pay for a ticket and are not allocated a seat. They will be sitting on an Adult's lap."
+    // Note that this implies maximum of 1 infant per adult.
+    // HOWEVER it is not explicitly stated, so IRL I would clarify this.
+    @Test
+    void shouldThrowException_MoreInfantsThanAdults() {
+        TicketTypeRequest adultRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.ADULT, 2);
+        TicketTypeRequest infantRequest = new TicketTypeRequest(
+                TicketTypeRequest.Type.INFANT, 3);
+
+        // Assert that the expected exception is thrown
+        Assertions.assertThrows(InvalidPurchaseException.class, () ->
+                ticketService.purchaseTickets(validAccountId, adultRequest, infantRequest));
+
+        // ... and verify that the 3rd party interfaces are not called
+        verifyNoInteractions(ticketPaymentService, seatReservationService);
+    }
 }
