@@ -28,16 +28,22 @@ public class TicketServiceImpl implements TicketService {
         int totalSeats = 0;
         int totalTickets = 0;
 
+        validateAccount(accountId);
+        validateRequests(ticketTypeRequests);
+
         int nAdults = countTicketsByType(ticketTypeRequests, TicketType.ADULT);
         int nChildren = countTicketsByType(ticketTypeRequests, TicketType.CHILD);
         int nInfants = countTicketsByType(ticketTypeRequests, TicketType.INFANT);
 
+        // All types need a ticket
+        totalTickets = nAdults + nChildren + nInfants;
+        if (totalTickets == 0) {
+            throw new InvalidPurchaseException();
+        }
+
         for (TicketTypeRequest request : ticketTypeRequests) {
             totalCost += (request.getNoOfTickets() * request.getTicketType().getPrice());
         }
-
-        // All types need a ticket
-        totalTickets = nAdults + nChildren + nInfants;
 
         // Infants don't take up a seat
         totalSeats = nAdults + nChildren;
@@ -63,6 +69,24 @@ public class TicketServiceImpl implements TicketService {
 
         ticketPaymentService.makePayment(accountId, totalCost);
         seatReservationService.reserveSeat(accountId, totalSeats);
+    }
+
+    private void validateRequests(TicketTypeRequest[] ticketTypeRequests) throws InvalidPurchaseException {
+        if (ticketTypeRequests == null || ticketTypeRequests.length == 0) {
+            throw new InvalidPurchaseException();
+        }
+
+        // Check for negative ticket requests
+        if (Arrays.stream(ticketTypeRequests).anyMatch(
+                request -> request.getNoOfTickets() < 0)) {
+            throw new InvalidPurchaseException();
+        }
+    }
+
+    private void validateAccount(Long accountId) throws InvalidPurchaseException {
+        if (accountId == null || accountId <= 0) {
+            throw new InvalidPurchaseException();
+        }
     }
 
     // Helper method to count all tickets of a given type in the requests
