@@ -197,7 +197,7 @@ public class TicketServiceTest {
         TicketTypeRequest childRequest = new TicketTypeRequest(TicketType.CHILD, 0);
 
         Assertions.assertThrows(InvalidPurchaseException.class, () ->
-                ticketService.purchaseTickets(null, adultRequest, childRequest)
+                ticketService.purchaseTickets(validAccountId, adultRequest, childRequest)
         );
 
         verifyNoInteractions(ticketPaymentService, seatReservationService);
